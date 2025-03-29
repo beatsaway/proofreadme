@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --success-color: #4cc9f0;
+            --danger-color: #f72585;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --border-radius: 8px;
+        }
+        
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #f9f9fb;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        p {
+            color: #6c757d;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        #inputText { 
+            width: 100%; 
+            height: 150px; 
+            margin-bottom: 15px; 
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius);
+            font-family: inherit;
+            font-size: 16px;
+            resize: vertical;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        
+        #inputText:focus {
+            border-color: var(--primary-color);
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+        }
+        
+        #output { 
+            line-height: 1.6; 
+            font-size: 16px; 
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius);
+            background-color: white;
+            min-height: 120px;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+        }
+        
+        .corrected { 
+            color: var(--primary-color); 
+            background-color: rgba(67, 97, 238, 0.1);
+            cursor: pointer;
+            padding: 2px 3px;
+            border-radius: 3px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .corrected:hover {
+            background-color: rgba(67, 97, 238, 0.2);
+        }
+        
+        .tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        
+        .corrected:hover .tooltip {
+            opacity: 1;
+        }
+        
+        .btn {
+            display: inline-block;
+            font-weight: 500;
+            color: #212529;
+            text-align: center;
+            vertical-align: middle;
+            cursor: pointer;
+            background-color: transparent;
+            border: 1px solid transparent;
+            padding: 0.5rem 1rem;
+            font-size: 15px;
+            line-height: 1.5;
+            border-radius: var(--border-radius);
+            transition: all 0.15s ease-in-out;
+            margin-right: 10px;
+        }
+        
+        .btn-primary {
+            color: white;
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-secondary {
+            color: white;
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+        
+        .btn-danger {
+            color: white;
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #d6156f;
+            border-color: #d6156f;
+        }
+        
+        .btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+        
+        .controls { 
+            margin: 15px 0; 
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-top: 30px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background-color: #e9ecef;
+            margin-left: 10px;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow: auto;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 25px;
+            width: 450px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            animation: slideDown 0.3s;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal-title { 
+            margin-top: 0; 
+            color: var(--dark-color);
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .modal-input { 
+            width: 100%; 
+            padding: 10px; 
+            margin: 15px 0;
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius);
+            font-family: inherit;
+            font-size: 16px;
+        }
+        
+        .modal-input:focus {
+            border-color: var(--primary-color);
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+        }
+        
+        .modal-buttons { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-top: 15px;
+        }
+        
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+            font-size: 14px;
+            color: #6c757d;
+        }
+        
+        .status-text {
+            display: flex;
+            align-items: center;
+        }
+        
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #28a745;
+            margin-right: 8px;
+        }
+        
+        .keyboard-shortcut {
+            background-color: #e9ecef;
+            border-radius: 3px;
+            padding: 2px 5px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 0 5px;
+        }
+        
+        /* Tooltip for showing original text */
+        .original-text {
+            font-style: italic;
+            color: #6c757d;
+        }
+        
+        /* Help tooltip */
+        .help-icon {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            background-color: #e9ecef;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 18px;
+            font-size: 12px;
+            cursor: help;
+            margin-left: 8px;
+            position: relative;
+        }
+        
+        .help-icon:hover .help-text {
+            display: block;
+        }
+        
+        .help-text {
+            display: none;
+            position: absolute;
+            bottom: 26px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            width: 200px;
+            font-size: 12px;
+            z-index: 10;
+        }
+        
+        .help-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            .btn {
+                margin-bottom: 8px;
+                width: 100%;
+            }
+            
+            .modal-content {
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <p>Paste your text, format it, then select any text to add corrections. Click on corrected text to edit or remove it.</p>
+    
+    <div class="container">
+        <textarea id="inputText" placeholder="Paste your text here..."></textarea>
+        
+        <div class="controls">
+            <button class="btn btn-primary" onclick="formatText()">Format Text</button>
+            <button class="btn btn-secondary" onclick="toggleCorrections()">Toggle Corrections</button>
+            <button class="btn btn-secondary" onclick="undo()" id="undoBtn" disabled>Undo</button>
+            <button class="btn btn-secondary" onclick="copyText()">Copy Text</button>
+        </div>
+        
+        <div class="section-title">
+            Editable Text
+            <div class="help-icon">?
+                <div class="help-text">Select any text to correct it. Click on green corrected text to edit or remove it.</div>
+            </div>
+        </div>
+        
+        <div id="output"></div>
+        
+        <div class="status-bar">
+            <div class="status-text">
+                <span class="status-dot"></span>
+                <span id="stats">Ready</span>
+            </div>
+            <div>
+                Keyboard shortcuts: <span class="keyboard-shortcut">Ctrl+Z</span> Undo
+            </div>
+        </div>
+    </div>
+    
+    <!-- Simple modal for editing corrections -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3 class="modal-title">Edit Correction</h3>
+            <p id="originalText" class="original-text"></p>
+            <input type="text" id="correctionInput" class="modal-input">
+            <input type="hidden" id="correctionId">
+            <div class="modal-buttons">
+                <button class="btn btn-danger" onclick="removeCorrection()">Remove Correction</button>
+                <div>
+                    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveCorrection()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Core data structures
+        let originalText = "";
+        let corrections = [];
+        let undoStack = [];
+        let showCorrections = true;
+        
+        // Initialize the text
+        function formatText() {
+            originalText = document.getElementById('inputText').value;
+            corrections = [];
+            undoStack = [];
+            document.getElementById('undoBtn').disabled = true;
+            renderText();
+            updateStats();
+            
+            // Focus the output area to make selection easier
+            document.getElementById('output').focus();
+            
+            // Update status
+            const stats = document.getElementById('stats');
+            stats.textContent = "Text formatted and ready for corrections";
+        }
+        
+        // Global map for tracking positions
+        let positionMap = [];
+        
+        // Render text with corrections
+        function renderText() {
+            const output = document.getElementById('output');
+            output.innerHTML = '';
+            
+            // Reset position map
+            positionMap = [];
+            
+            // If not showing corrections, just show original
+            if (!showCorrections) {
+                output.textContent = originalText;
+                // Map each character position directly
+                for (let i = 0; i < originalText.length; i++) {
+                    positionMap.push(i);
+                }
+                return;
+            }
+            
+            // Sort corrections by position
+            const sortedCorrections = [...corrections].sort((a, b) => a.start - b.start);
+            
+            let currentPos = 0;
+            
+            // Process each correction in order
+            for (let i = 0; i < sortedCorrections.length; i++) {
+                const correction = sortedCorrections[i];
+                
+                // Add text before correction
+                if (correction.start > currentPos) {
+                    const textBefore = originalText.substring(currentPos, correction.start);
+                    const textBeforeNode = document.createTextNode(textBefore);
+                    output.appendChild(textBeforeNode);
+                    
+                    // Map each character of original text to its position
+                    for (let j = 0; j < textBefore.length; j++) {
+                        positionMap.push(currentPos + j);
+                    }
+                }
+                
+        // Add corrected text
+        const correctedSpan = document.createElement('span');
+        correctedSpan.className = 'corrected';
+        correctedSpan.textContent = correction.text;
+        correctedSpan.dataset.index = i;
+        correctedSpan.dataset.start = correction.start;
+        correctedSpan.dataset.end = correction.end;
+        correctedSpan.title = "Click to edit";
+        
+        // Create tooltip to show on hover
+        const tooltip = document.createElement('span');
+        tooltip.className = 'tooltip';
+        tooltip.textContent = 'Click to edit';
+        correctedSpan.appendChild(tooltip);
+        
+        correctedSpan.onclick = function() { editCorrection(this.dataset.index); };
+                output.appendChild(correctedSpan);
+                
+                // For corrected text, map each character to the start position of the correction
+                // (This essentially tags the entire correction as "belongs to this original range")
+                for (let j = 0; j < correction.text.length; j++) {
+                    // Store as negative to mark as "corrected text"
+                    positionMap.push(-correction.start);
+                }
+                
+                // Update position
+                currentPos = correction.end;
+            }
+            
+            // Add remaining text after last correction
+            if (currentPos < originalText.length) {
+                const textAfter = originalText.substring(currentPos);
+                const textAfterNode = document.createTextNode(textAfter);
+                output.appendChild(textAfterNode);
+                
+                // Map each character of remaining text
+                for (let j = 0; j < textAfter.length; j++) {
+                    positionMap.push(currentPos + j);
+                }
+            }
+            
+            // Debug information
+            console.log("Position Map Length:", positionMap.length);
+            console.log("Display Text Length:", output.textContent.length);
+        }
+        
+        // Handle selection to create a new correction
+        document.addEventListener('mouseup', function(e) {
+            // Only process selections in the output area
+            if (!e.target.closest('#output')) return;
+            // Don't process clicks on corrections
+            if (e.target.classList && e.target.classList.contains('corrected')) return;
+            
+            const selection = window.getSelection();
+            if (!selection.isCollapsed) {
+                // Get selected text
+                const selectedText = selection.toString();
+                if (selectedText.trim().length === 0) return;
+                
+                // Find the correction positions
+                const range = selection.getRangeAt(0);
+                const positions = findPositionsInOriginalText(range);
+                
+                if (positions) {
+                    // Prompt for correction
+                    const correction = prompt('Enter correction for: "' + selectedText + '"', selectedText);
+                    
+                    if (correction !== null && correction.length > 0) {
+                        addCorrection(positions.start, positions.end, correction);
+                    }
+                }
+                
+                selection.removeAllRanges();
+            }
+        });
+        
+        // Find positions in original text based on selection
+        function findPositionsInOriginalText(range) {
+            const output = document.getElementById('output');
+            
+            // Check if selection crosses any corrections (not allowed)
+            const correctedSpans = output.querySelectorAll('.corrected');
+            for (const span of correctedSpans) {
+                if (range.intersectsNode(span)) {
+                    alert("You cannot select text that includes corrections. Please click on individual corrections to edit them.");
+                    return null;
+                }
+            }
+            
+            // Get exact nodes and offsets of the selection
+            let startNode = range.startContainer;
+            let startOffset = range.startOffset;
+            let endNode = range.endContainer;
+            let endOffset = range.endOffset;
+            
+            // Convert to display position indices
+            const displayStartPos = getDisplayPosition(startNode, startOffset);
+            const displayEndPos = getDisplayPosition(endNode, endOffset);
+            
+            if (displayStartPos === -1 || displayEndPos === -1) {
+                console.error("Could not determine display positions");
+                return null;
+            }
+            
+            console.log(`Display positions: ${displayStartPos} to ${displayEndPos}`);
+            console.log(`Selected text: "${range.toString()}"`);
+            
+            // Get original positions using the position map
+            let origStartPos = -1;
+            let origEndPos = -1;
+            
+            // Convert display positions to original positions
+            if (displayStartPos < positionMap.length) {
+                // Get the original position for the start of selection
+                origStartPos = Math.abs(positionMap[displayStartPos]);
+                
+                // Get the original position for the end of selection
+                if (displayEndPos <= positionMap.length) {
+                    origEndPos = Math.abs(positionMap[displayEndPos - 1]) + 1;
+                }
+            }
+            
+            // If we couldn't determine proper positions, abort
+            if (origStartPos === -1 || origEndPos === -1 || origEndPos <= origStartPos) {
+                console.error("Invalid original positions:", origStartPos, origEndPos);
+                return null;
+            }
+            
+            console.log(`Original positions: ${origStartPos} to ${origEndPos}`);
+            console.log(`Original text at these positions: "${originalText.substring(origStartPos, origEndPos)}"`);
+            
+            // Verify the selection maps to the correct text
+            const selectedText = range.toString();
+            const mappedText = originalText.substring(origStartPos, origEndPos);
+            
+            // If the text doesn't match approximately, adjust positions
+            // (allowing for whitespace differences)
+            if (selectedText.trim() !== mappedText.trim() && 
+                selectedText.length > 2 && mappedText.length > 2) {
+                console.warn("Selection text mismatch:", selectedText, mappedText);
+                
+                // Try to find a better match by searching near the found position
+                const betterMatch = findBetterTextMatch(selectedText, origStartPos);
+                if (betterMatch) {
+                    origStartPos = betterMatch.start;
+                    origEndPos = betterMatch.end;
+                    console.log(`Adjusted positions: ${origStartPos} to ${origEndPos}`);
+                    console.log(`Adjusted text: "${originalText.substring(origStartPos, origEndPos)}"`);
+                }
+            }
+            
+            return { 
+                start: origStartPos, 
+                end: origEndPos,
+                text: originalText.substring(origStartPos, origEndPos)
+            };
+        }
+        
+        // Helper function to get display position index from node and offset
+        function getDisplayPosition(node, offset) {
+            const output = document.getElementById('output');
+            let position = 0;
+            
+            // If it's a text node, traverse the DOM to find its position
+            if (node.nodeType === Node.TEXT_NODE) {
+                const walker = document.createTreeWalker(
+                    output, 
+                    NodeFilter.SHOW_TEXT, 
+                    null, 
+                    false
+                );
+                
+                // Find the position by counting characters in text nodes
+                let currentNode;
+                let found = false;
+                
+                while ((currentNode = walker.nextNode()) !== null) {
+                    if (currentNode === node) {
+                        position += offset;
+                        found = true;
+                        break;
+                    } else {
+                        position += currentNode.textContent.length;
+                    }
+                }
+                
+                if (!found) {
+                    return -1;
+                }
+            } else {
+                // For element nodes, try to find text position
+                // This is a simplification and may need refinement
+                const textBefore = getAllTextBefore(node, output);
+                position = textBefore.length + offset;
+            }
+            
+            return position;
+        }
+        
+        // Get all text before a node
+        function getAllTextBefore(targetNode, rootNode) {
+            let text = '';
+            const walker = document.createTreeWalker(
+                rootNode, 
+                NodeFilter.SHOW_TEXT, 
+                null, 
+                false
+            );
+            
+            let currentNode;
+            while ((currentNode = walker.nextNode()) !== null) {
+                if (currentNode === targetNode || isDescendantOf(targetNode, currentNode)) {
+                    break;
+                }
+                text += currentNode.textContent;
+            }
+            
+            return text;
+        }
+        
+        // Check if one node is a descendant of another
+        function isDescendantOf(ancestor, node) {
+            let current = node.parentNode;
+            while (current) {
+                if (current === ancestor) {
+                    return true;
+                }
+                current = current.parentNode;
+            }
+            return false;
+        }
+        
+        // Find a better text match in the original text
+        function findBetterTextMatch(searchText, nearPosition) {
+            // Clean up the search text (trim and normalize whitespace)
+            const cleanSearchText = searchText.trim().replace(/\s+/g, ' ');
+            
+            // Search window size (characters to check before and after the near position)
+            const windowSize = Math.max(100, searchText.length * 5);
+            
+            // Define search boundaries
+            const startSearch = Math.max(0, nearPosition - windowSize);
+            const endSearch = Math.min(originalText.length, nearPosition + windowSize);
+            
+            // Get the section of text to search
+            const searchArea = originalText.substring(startSearch, endSearch);
+            
+            // Find the best match in this area
+            let bestMatchIndex = -1;
+            let bestMatchDistance = Infinity;
+            
+            // Simple search for exact match
+            const cleanSearchArea = searchArea.replace(/\s+/g, ' ');
+            bestMatchIndex = cleanSearchArea.indexOf(cleanSearchText);
+            
+            if (bestMatchIndex !== -1) {
+                return {
+                    start: startSearch + bestMatchIndex,
+                    end: startSearch + bestMatchIndex + cleanSearchText.length
+                };
+            }
+            
+            // If no exact match, try fuzzy matching (simplified)
+            // This could be enhanced with proper fuzzy matching algorithms
+            for (let i = 0; i < searchArea.length - cleanSearchText.length; i++) {
+                const candidate = searchArea.substring(i, i + cleanSearchText.length);
+                const cleanCandidate = candidate.trim().replace(/\s+/g, ' ');
+                
+                // Calculate a simple difference score 
+                let diffCount = 0;
+                for (let j = 0; j < Math.min(cleanCandidate.length, cleanSearchText.length); j++) {
+                    if (cleanCandidate[j] !== cleanSearchText[j]) {
+                        diffCount++;
+                    }
+                }
+                
+                diffCount += Math.abs(cleanCandidate.length - cleanSearchText.length);
+                
+                // Calculate distance from expected position
+                const posDistance = Math.abs((startSearch + i) - nearPosition);
+                
+                // Weighted score - prioritize text similarity but consider position
+                const score = (diffCount * 3) + (posDistance / 10);
+                
+                if (score < bestMatchDistance) {
+                    bestMatchDistance = score;
+                    bestMatchIndex = i;
+                }
+            }
+            
+            // If we found a reasonable match
+            if (bestMatchIndex !== -1 && bestMatchDistance < cleanSearchText.length / 2) {
+                return {
+                    start: startSearch + bestMatchIndex,
+                    end: startSearch + bestMatchIndex + cleanSearchText.length
+                };
+            }
+            
+            // No good match found
+            return null;
+        }
+        
+        // Add a new correction
+        function addCorrection(start, end, text) {
+            // Save for undo
+            undoStack.push([...corrections]);
+            document.getElementById('undoBtn').disabled = false;
+            
+            // Add the correction
+            corrections.push({
+                start: start,
+                end: end,
+                text: text
+            });
+            
+            renderText();
+            updateStats();
+        }
+        
+        // Edit an existing correction
+        function editCorrection(index) {
+            const correction = corrections[index];
+            
+            document.getElementById('originalText').textContent = 
+                `Original text: "${originalText.substring(correction.start, correction.end)}"`;
+            document.getElementById('correctionInput').value = correction.text;
+            document.getElementById('correctionId').value = index;
+            
+            document.getElementById('editModal').style.display = 'block';
+            document.getElementById('correctionInput').focus();
+            document.getElementById('correctionInput').select();
+        }
+        
+        // Save edited correction
+        function saveCorrection() {
+            const index = document.getElementById('correctionId').value;
+            const newText = document.getElementById('correctionInput').value;
+            
+            if (newText.trim().length > 0) {
+                // Save for undo
+                undoStack.push([...corrections]);
+                document.getElementById('undoBtn').disabled = false;
+                
+                // Update the correction
+                corrections[index].text = newText;
+                renderText();
+                closeModal();
+            }
+        }
+        
+        // Remove a correction
+        function removeCorrection() {
+            const index = document.getElementById('correctionId').value;
+            
+            // Save for undo
+            undoStack.push([...corrections]);
+            document.getElementById('undoBtn').disabled = false;
+            
+            // Remove the correction
+            corrections.splice(index, 1);
+            renderText();
+            closeModal();
+        }
+        
+        // Close the edit modal
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+        
+        // Toggle showing/hiding corrections
+        function toggleCorrections() {
+            showCorrections = !showCorrections;
+            renderText();
+            
+            // Update status
+            const stats = document.getElementById('stats');
+            stats.textContent = showCorrections ? 
+                "Showing corrected text" : 
+                "Showing original text";
+            setTimeout(() => {
+                stats.textContent = `${corrections.length} corrections applied`;
+            }, 2000);
+        }
+        
+        // Undo the last change
+        function undo() {
+            if (undoStack.length > 0) {
+                corrections = undoStack.pop();
+                renderText();
+                updateStats();
+                
+                if (undoStack.length === 0) {
+                    document.getElementById('undoBtn').disabled = true;
+                }
+                
+                // Show status update
+                const stats = document.getElementById('stats');
+                stats.textContent = "Undo successful";
+                setTimeout(() => {
+                    stats.textContent = `${corrections.length} corrections applied`;
+                }, 2000);
+            }
+        }
+        
+        // Add a function to copy the text
+        function copyText() {
+            const outputText = document.getElementById('output').innerText;
+            navigator.clipboard.writeText(outputText).then(() => {
+                const stats = document.getElementById('stats');
+                stats.textContent = "Text copied to clipboard!";
+                setTimeout(() => {
+                    stats.textContent = `${corrections.length} corrections applied`;
+                }, 2000);
+            }).catch(err => {
+                console.error('Error copying text: ', err);
+            });
+        }
+        
+        // Update stats display
+        function updateStats() {
+            const stats = document.getElementById('stats');
+            stats.textContent = `${corrections.length} corrections applied`;
+        }
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+Z for undo
+            if (e.ctrlKey && e.key === 'z' && !document.getElementById('undoBtn').disabled) {
+                undo();
+                e.preventDefault();
+            }
+            
+            // Enter in modal to save
+            if (e.key === 'Enter' && document.getElementById('editModal').style.display === 'block') {
+                saveCorrection();
+                e.preventDefault();
+            }
+            
+            // Escape in modal to cancel
+            if (e.key === 'Escape' && document.getElementById('editModal').style.display === 'block') {
+                closeModal();
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
